@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1.2-alpine AS base
+FROM oven/bun:latest AS base
 WORKDIR /app
 
 # Instala dependências
 FROM base AS deps
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Build
 FROM base AS builder
@@ -15,20 +15,20 @@ COPY . .
 RUN bun run build
 
 # Runtime
-FROM oven/bun:1.2-alpine AS runner
+FROM oven/bun:latest AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
+# RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 
 COPY --from=builder --chown=nextjs:nextjs /app/public ./public
 COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
 
-USER nextjs
+# USER nextjs
 
 EXPOSE 3000
 
