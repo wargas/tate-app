@@ -94,6 +94,10 @@ export default async function Home(props: PageProps<"/">) {
           </Table>
         </CardContent>
       </Card>
+
+      <div className="absolute right-1 bottom-1 text-xs">
+        BUILD: {process.env.NEXT_PUBLIC_BUILD_DATE!}
+      </div>
     </div>
   );
 }
