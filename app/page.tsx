@@ -12,7 +12,7 @@ import { estypes } from "@elastic/elasticsearch"
 
 export default async function Home(props: PageProps<"/">) {
 
-  const { q = ""} = await props.searchParams
+  const { q = "", t = "" } = await props.searchParams
 
   const term = String(q)
 
@@ -20,18 +20,18 @@ export default async function Home(props: PageProps<"/">) {
     bool: {
       must_not: [
         {
-          exists: {field: "ai"}
+          exists: { field: "ai" }
         }
       ],
       must: [
         {
-          exists: {field: "url"}
+          exists: { field: "url" }
         }
       ]
     }
   }
 
-  const count = await elastic.count({query: filter})
+  const count = await elastic.count({ query: filter })
 
   const items = await elastic.search<Decisao>({
     index: "decisoes-tate",
@@ -52,9 +52,9 @@ export default async function Home(props: PageProps<"/">) {
             <Button variant={'outline'}>Filtrar Resultado</Button>
           </Form>
 
-          {count.count} registros
+          {count.count} registros <span className="hidden">{t}</span>
         </CardHeader>
-        
+
         <CardContent className="p-0">
           <Table>
             <TableHeader>
