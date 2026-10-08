@@ -10,7 +10,7 @@ import Link from "next/link";
 import _ from "lodash"
 import { estypes } from "@elastic/elasticsearch"
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function Home(props: PageProps<"/">) {
 
