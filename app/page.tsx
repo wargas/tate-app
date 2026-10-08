@@ -1,49 +1,67 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { elastic } from "@/lib/elastic";
 import { Decisao } from "@/types";
-import { FileTextIcon, PenBox } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileTextIcon, PenBox } from "lucide-react";
 import Form from "next/form"
 import Link from "next/link";
 import _ from "lodash"
 import { estypes } from "@elastic/elasticsearch"
+import qs from 'querystring'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home(props: PageProps<"/">) {
 
-  const { q = "", t = "" } = await props.searchParams
+  const params = await props.searchParams;
+  const { q = "", p = "1" } = params;
+
+  const page = parseInt(p.toString()) ?? 1
+  const perPage = 10
 
   const term = String(q)
 
   const filter: estypes.QueryDslQueryContainer = {
     bool: {
-      must_not: [
-        {
-          exists: { field: "ai" }
-        }
-      ],
-      must: [
-        {
-          exists: { field: "url" }
-        }
-      ]
+      // filter: [
+      //   {
+
+      //   }
+      // ]
+      // must_not: [
+      //   {
+      //     exists: { field: "ai" }
+      //   }
+      // ],
+      // must: [
+      //   {
+      //     exists: { field: "url" }
+      //   }
+      // ]
     }
   }
 
-  const count = await elastic.count({ query: filter })
+  const count = await elastic.count({ index: "decisoes-tate", query: filter })
+
+  const pages = Array(Math.ceil(count.count / perPage)).fill(1).map((_, i) => i + 1)
 
   const items = await elastic.search<Decisao>({
     index: "decisoes-tate",
     query: filter,
+    from: (page-1) * perPage,
     size: 10
   })
 
-  console.log("REFETCH#############")
-
   const hits = items.hits.hits
+
+  function generateSearchParams(newParams: any) {
+    const search = { ...params, ...newParams }
+
+    return "?" + qs.stringify(search)
+  }
 
   return (
     <div className="p-4">
@@ -54,7 +72,7 @@ export default async function Home(props: PageProps<"/">) {
             <Button variant={'outline'}>Filtrar Resultado</Button>
           </Form>
 
-          {count.count} registros <span className="hidden">{t}</span>
+          {count.count} registros
         </CardHeader>
 
         <CardContent className="p-0">
@@ -95,6 +113,33 @@ export default async function Home(props: PageProps<"/">) {
             </TableBody>
           </Table>
         </CardContent>
+
+        <CardFooter className="gap-1">
+          <div className="ml-auto"></div>
+          <Button variant={'ghost'} asChild>
+            <Link href={generateSearchParams({ p: Math.max(1, page - 1) })}>
+              <ChevronLeft />
+            </Link>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              {page}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {pages.map(p => (
+                <DropdownMenuItem key={p} asChild>
+                  <Link href={generateSearchParams({ p })}>{p}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant={'ghost'} asChild>
+            <Link href={generateSearchParams({ p: Math.min(pages.length, page + 1) })}>
+              <ChevronRight />
+            </Link>
+          </Button>
+
+        </CardFooter>
       </Card>
 
       <div className="absolute right-1 bottom-1 text-xs">
