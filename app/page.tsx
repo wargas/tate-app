@@ -52,7 +52,8 @@ export default async function Home(props: PageProps<"/">) {
     index: "decisoes-tate",
     query: filter,
     from: (page-1) * perPage,
-    size: 10
+    size: 10,
+    sort: {"ai.keyword": "desc"}
   })
 
   const hits = items.hits.hits
