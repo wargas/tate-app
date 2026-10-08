@@ -10,6 +10,8 @@ import Link from "next/link";
 import _ from "lodash"
 import { estypes } from "@elastic/elasticsearch"
 
+export const revalidate = 60;
+
 export default async function Home(props: PageProps<"/">) {
 
   const { q = "", t = "" } = await props.searchParams
